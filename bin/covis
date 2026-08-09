@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for file in "$@"; do
+	echo $file
+# The shell script uses grappa1_2x.jar that is the modified
+# version of grappa1_2.jar for graphviz-2.3x, and is not
+# included in the original grappa. If you would like to
+# use the original grappa1_2.jar, you should install
+# graphviz-2.2x to your environment.  
+#	java -cp /mnt/c/Users/alpha/Desktop/coins/CoVis/classes:/mnt/c/Users/alpha/Desktop/coins/Grappa/archives/grappa1_2.jar covis.CoVis $file
+	java -cp /mnt/c/Users/alpha/Desktop/coins/CoVis/classes:/mnt/c/Users/alpha/Desktop/coins/Grappa/archives/grappa1_2x.jar covis.CoVis $file
+done

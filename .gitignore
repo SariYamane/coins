@@ -1,0 +1,8 @@
+*.class
+*.o
+
+coins-1.5-en.jar
+a.out
+
+.vscode/
+current

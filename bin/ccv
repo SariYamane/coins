@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for file in "$@"; do
+	echo $file
+	java -classpath /mnt/c/Users/alpha/Desktop/coins/current/classes coins.driver.Driver $file -coins:assembler=as,linker="gcc -no-pie",target=x86_64,snapshot
+done

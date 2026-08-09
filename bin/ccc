@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for file in "$@"; do
+echo $file
+java -cp /mnt/c/Users/alpha/Desktop/coins/current/classes coins.driver.Driver -I/mnt/c/Users/alpha/Desktop/coins/current/lang/c/include -I/mnt/c/Users/alpha/Desktop/coins/current/lang/c/include/samples  $file  -coins:assembler=as,linker=gcc,target=x86_64,lir-opt=divex/printflow/av/printflow
+done
