@@ -283,6 +283,41 @@ public class AV implements LocalTransformer {
 	    }
 	}
     }
+
+
+	void settleWordwise () {
+		int wordLength = in[f.flowGraph().entryBlk().id].getWordLength();
+
+		for (int i=0; i<wordLength; i++) {
+			Stack wordStack = new Stack();
+
+			for (BiLink bb=f.flowGraph().basicBlkList.first();!bb.atEnd(); bb=bb.next()) {
+				BasicBlk v = (BasicBlk)bb.elem();
+				wordStack.push(v);
+			}
+
+			while (!wordStack.empty()) {
+				BasicBlk v = (BasicBlk)wordStack.pop();
+
+				for (BiLink ss=v.succList().first(); !ss.atEnd(); ss=ss.next()) {
+					BasicBlk succ = (BasicBlk)ss.elem();
+
+					for (BiLink pp=succ.predList().first(); !pp.atEnd(); pp=pp.next()) {
+						BasicBlk pred = (BasicBlk)pp.elem();
+
+						in[succ.id].getVectorWord()[i] &= out[pred.id].getVectorWord()[i];
+					}
+
+					long newOut = gen[succ.id].getVectorWord()[i] | (in[succ.id].getVectorWord()[i] & ~kill[succ.id].getVectorWord()[i]);
+
+					if (out[succ.id].getVectorWord()[i] != newOut) {
+						out[succ.id].getVectorWord()[i] = newOut;
+						wordStack.push(succ);
+					}
+				}
+			}
+		}
+	}
 	
 
     void update () {
@@ -323,7 +358,7 @@ public class AV implements LocalTransformer {
 	}
 
 	init();
-	settle();
+	settleWordwise();
 	update();
 
 	f.flowGraph().touch();
