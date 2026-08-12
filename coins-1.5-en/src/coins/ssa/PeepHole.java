@@ -13,6 +13,8 @@ import coins.backend.cfg.FlowGraph;
 // Import coins.backend.Op, if you would like to refer kinds of operators.
 import coins.backend.Op;
 
+import coins.backend.lir.LirIconst;
+
 // Implement LocalTransformer
 public class PeepHole implements LocalTransformer {
 
@@ -76,6 +78,65 @@ public class PeepHole implements LocalTransformer {
 			// Printing a statement after transformation for confirmation
 			System.out.println("\treplaced with "+ node.toString());
 		    }
+
+		// Double negation: t = -x; y = -t;  ->  y = x
+		if (node.opCode == Op.SET && prevNode.opCode == Op.SET &&
+			prevNode.kid(0).opCode == Op.REG &&
+			prevNode.kid(1).opCode == Op.NEG &&
+			prevNode.kid(1).kid(0).opCode == Op.REG &&
+			node.kid(1).opCode == Op.NEG &&
+			node.kid(1).kid(0).opCode == Op.REG &&
+			node.kid(1).kid(0).equals(prevNode.kid(0))) {
+
+			System.out.println(node.toString() + " is ");
+
+			node.setKid(1,
+				prevNode.kid(1).kid(0).makeCopy(env.lir));
+
+			System.out.println("\treplaced with " + node.toString());
+		}
+
+		// Strength reduction: x * 2^k -> x << k
+		if (node.opCode == Op.SET && node.kid(1).opCode == Op.MUL) {
+			LirNode mul = node.kid(1);
+			LirNode a = mul.kid(0);
+			LirNode b = mul.kid(1);
+
+			LirNode var = null;
+			LirNode c = null;
+
+			if (b.opCode == Op.INTCONST && a.opCode != Op.INTCONST) {
+				var = a;
+				c = b;
+			}
+			else if (a.opCode == Op.INTCONST && b.opCode != Op.INTCONST) {
+				var = b;
+				c = a;
+			}
+
+			if (c != null) {
+				long v = ((LirIconst)c).value;
+
+				// v is a positive power of two
+				if (v > 1 && (v & (v - 1)) == 0) {
+					int k = Long.numberOfTrailingZeros(v);
+
+					System.out.println(mul.toString() + " is ");
+
+					LirNode shift =
+						env.lir.operator(
+							Op.LSHS,
+							mul.type,
+							var.makeCopy(env.lir),
+							env.lir.iconst(c.type, k),
+							ImList.Empty);
+
+					node.setKid(1, shift);
+
+					System.out.println("\treplaced with " + shift.toString());
+				}
+			}
+		}
 		}
 	    }
 	}
